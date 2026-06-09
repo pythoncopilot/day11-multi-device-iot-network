@@ -2,7 +2,7 @@ name: IoT Edge System CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
 
 jobs:
@@ -41,25 +41,15 @@ jobs:
           test -f dashboard/index.html
           test -f arduino/esp8266_device.ino
 
-      # -----------------------
-      # SAFE HTML CHECK (FIXED)
-      # -----------------------
+      # -------------------------
+      # SAFE HTML CHECK (NO PYTHON BLOCKS)
+      # -------------------------
       - name: HTML sanity check
         run: |
-          python - << 'EOF'
-import sys
-
-path = "dashboard/index.html"
-
-with open(path, encoding="utf-8") as f:
-    file = f.read().lower()
-
-assert "<html" in file, "Missing <html> tag"
-assert "</html>" in file, "Missing </html> tag"
-assert "<script" in file, "Missing <script> tag"
-
-print("HTML structure OK")
-EOF
+          grep -q "<html" dashboard/index.html
+          grep -q "</html>" dashboard/index.html
+          grep -q "<script" dashboard/index.html
+          echo "HTML structure OK"
 
       - name: CI Success
         run: echo "✔ IoT Edge System CI Passed"
