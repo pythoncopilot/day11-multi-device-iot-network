@@ -1,0 +1,84 @@
+name: IoT Edge System CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      # -----------------------
+      # Checkout code
+      # -----------------------
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # -----------------------
+      # Setup Python
+      # -----------------------
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      # -----------------------
+      # Install dependencies
+      # -----------------------
+      - name: Install dependencies
+        run: |
+          pip install flask flask-cors requests
+
+      # -----------------------
+      # Python syntax check
+      # -----------------------
+      - name: Python compile check
+        run: |
+          python -m py_compile python/api.py
+          python -m py_compile python/db.py
+          python -m py_compile python/edge_simulator.py
+
+      # -----------------------
+      # Import test (API integrity)
+      # -----------------------
+      - name: Python import validation
+        run: |
+          python -c "import sys; sys.path.append('python'); import api; import db"
+
+      # -----------------------
+      # Check required files exist
+      # -----------------------
+      - name: Validate project structure
+        run: |
+          test -f README.md
+          test -f python/api.py
+          test -f python/db.py
+          test -f python/edge_simulator.py
+          test -f dashboard/index.html
+          test -f arduino/esp8266_device.ino
+
+      # -----------------------
+      # Basic HTML validation (syntax only)
+      # -----------------------
+      - name: HTML sanity check
+        run: |
+          python - << 'EOF'
+import re
+
+file = open("dashboard/index.html").read()
+
+# very basic checks
+assert "<html" in file.lower()
+assert "</html>" in file.lower()
+assert "<script" in file.lower()
+
+print("HTML structure OK")
+EOF
+
+      # -----------------------
+      # Final success message
+      # -----------------------
+      - name: CI Success
+        run: echo "✔ IoT Edge System CI Passed"

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edge IoT Dashboard</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #0b0f14;
+            color: white;
+            text-align: center;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .card {
+            background: #151c24;
+            border: 1px solid #2a3440;
+            border-radius: 12px;
+            width: 260px;
+            margin: 10px;
+            padding: 15px;
+        }
+
+        .device { color: #00d4ff; font-size: 18px; }
+        .type { color: #aaa; font-size: 13px; }
+        .event { color: #ffcc00; margin-top: 10px; }
+        .time { color: #777; font-size: 11px; }
+    </style>
+</head>
+
+<body>
+
+<h1>📡 Edge IoT Dashboard</h1>
+
+<div class="container" id="dashboard"></div>
+
+<script>
+
+
+// --------------------------
+// CONFIGURATION
+// --------------------------
+const MODE = "LOCAL";
+
+const BASE_URL = (MODE === "LOCAL")
+    ? "http://127.0.0.1:5000"
+    : "http://192.168.1.10:5000";   // CHANGE THIS
+
+const API_URL = BASE_URL + "/state";
+
+
+// --------------------------
+async function fetchData() {
+    try {
+        const res = await fetch(API_URL);
+        const data = await res.json();
+        render(data);
+    } catch (err) {
+        console.log(err);
+    }
+}
+
+
+// --------------------------
+function render(data) {
+    let html = "";
+
+    data.forEach(d => {
+
+        let payload = "";
+        try {
+            payload = JSON.stringify(JSON.parse(d.payload));
+        } catch {
+            payload = d.payload;
+        }
+
+        html += `
+        <div class="card">
+            <div class="device">${d.device_id}</div>
+            <div class="type">${d.device_type}</div>
+            <div class="event">${d.event_type}</div>
+            <div>${payload}</div>
+            <div class="time">${d.timestamp}</div>
+        </div>`;
+    });
+
+    document.getElementById("dashboard").innerHTML = html;
+}
+
+setInterval(fetchData, 3000);
+fetchData();
+
+</script>
+
+</body>
+</html>
