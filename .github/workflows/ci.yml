@@ -11,7 +11,7 @@ jobs:
 
     steps:
       # -----------------------
-      # Checkout code
+      # Checkout repository
       # -----------------------
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -41,14 +41,14 @@ jobs:
           python -m py_compile python/edge_simulator.py
 
       # -----------------------
-      # Import test (API integrity)
+      # Import validation
       # -----------------------
-      - name: Python import validation
+      - name: Python import test
         run: |
           python -c "import sys; sys.path.append('python'); import api; import db"
 
       # -----------------------
-      # Check required files exist
+      # Repo structure validation
       # -----------------------
       - name: Validate project structure
         run: |
@@ -60,25 +60,22 @@ jobs:
           test -f arduino/esp8266_device.ino
 
       # -----------------------
-      # Basic HTML validation (syntax only)
+      # HTML sanity check (safe version)
       # -----------------------
       - name: HTML sanity check
         run: |
-          python - << 'EOF'
-import re
+          python -c "
+file = open('dashboard/index.html', encoding='utf-8').read()
 
-file = open("dashboard/index.html").read()
+assert '<html' in file.lower(), 'Missing <html> tag'
+assert '</html>' in file.lower(), 'Missing </html> tag'
+assert '<script' in file.lower(), 'Missing script tag'
 
-# very basic checks
-assert "<html" in file.lower()
-assert "</html>" in file.lower()
-assert "<script" in file.lower()
-
-print("HTML structure OK")
-EOF
+print('HTML structure OK')
+"
 
       # -----------------------
       # Final success message
       # -----------------------
       - name: CI Success
-        run: echo "✔ IoT Edge System CI Passed"
+        run: echo '✔ IoT Edge System CI Passed'

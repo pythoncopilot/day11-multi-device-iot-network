@@ -59,7 +59,6 @@ def ingest_event():
 
     return jsonify({"status": "stored"})
 
-
 # --------------------------
 # LATEST STATE
 # --------------------------
